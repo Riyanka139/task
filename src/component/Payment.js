@@ -1,15 +1,25 @@
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 
-const Payment = () => {
+const Payment = (props) => {
 
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState('');
   const [isComplete, setIsComplete] = useState(false);
-  const [amount, setAmount] = useState(0)
+  const [amount, setAmount] = useState(0);
+  const { user } = props;
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    if (!user.firstName) {
+      navigate("/")
+    }
+  },[navigate, user])
 
   const handlePayAndPlaceOrder = async () => {
     setIsComplete(false);
@@ -40,17 +50,22 @@ const Payment = () => {
       return;
     } else {
       const pm = paymentMethod?.id || "0";
-      console.log(pm, amount);
-
+      console.log(pm, amount,user);
+      // hit payment api from server
+      setAmount('')
     }
   };
   return (
-    <div>
+    <div >
       {error && <p className='text-danger'>{error}</p>}
-      <Form.Group className="mb-3">
+      <div className='d-flex flex-wrap gap-4 mb-3 align-items-center'>
+      <p className='mb-0'>Name: {user.firstName} {user.lastName}</p>
+      <Form.Group>
         <Form.Label>Amount</Form.Label>
-        <Form.Control required type="number" placeholder="Enter AMount" name="amount" onChange={(e) => setAmount(e.target.value)} value={amount} />
-      </Form.Group>
+        <Form.Control required type="number" placeholder="Enter Amount" name="amount" onChange={(e) => setAmount(e.target.value)} value={amount} />
+        </Form.Group>
+      </div>
+      <div className='p-2 border'>
       <CardElement
         onChange={(event) => {
           setIsComplete(event.complete);
@@ -70,13 +85,14 @@ const Payment = () => {
           },
         }}
       />
-      {/* <PaymentElement /> */}
-      <Button className='mt-2'
+        {/* <PaymentElement /> */}
+        </div>
+      <Button className='mt-4 w-25'
 
         disabled={!isComplete}
         onClick={() => handlePayAndPlaceOrder()}
       >
-        Pay &amp; Fix
+        Pay
       </Button>
     </div>
 
